@@ -2,6 +2,8 @@
 
 namespace Cognesy\AgentCtrl\ClaudeCode\Domain\Dto\StreamEvent;
 
+use Cognesy\AgentCtrl\Common\Value\Normalize;
+
 /**
  * Stream event containing a message
  */
@@ -22,10 +24,7 @@ final readonly class MessageEvent extends StreamEvent
      */
     public static function fromArray(array $data): self
     {
-        $messageData = $data['message'] ?? [];
-        if (!is_array($messageData)) {
-            $messageData = [];
-        }
+        $messageData = Normalize::toArray($data['message'] ?? []);
 
         return new self(
             message: Message::fromArray($messageData),

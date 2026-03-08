@@ -2,6 +2,8 @@
 
 namespace Cognesy\AgentCtrl\ClaudeCode\Domain\Dto\StreamEvent;
 
+use Cognesy\AgentCtrl\Common\Value\Normalize;
+
 /**
  * Unknown content type - preserves raw data
  */
@@ -17,7 +19,7 @@ final readonly class UnknownContent extends MessageContent
     #[\Override]
     public function type(): string
     {
-        return $this->rawData['type'] ?? 'unknown';
+        return Normalize::toString($this->rawData['type'] ?? 'unknown', 'unknown');
     }
 
     /**
