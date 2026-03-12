@@ -1,3 +1,9 @@
+---
+title: AgentCtrl
+description: External coding agent control — Claude Code, Codex, OpenCode, and Gemini CLI bridges
+package: agent-ctrl
+---
+
 # AgentCtrl Cheat Sheet
 
 ## Entry Points
@@ -44,8 +50,8 @@ All builders support:
 - `onToolUse(callable $handler): static`
 - `onComplete(callable $handler): static`
 - `onError(callable $handler): static`
-- `execute(string $prompt): AgentResponse`
-- `executeStreaming(string $prompt): AgentResponse`
+- `execute(string|\Stringable $prompt): AgentResponse`
+- `executeStreaming(string|\Stringable $prompt): AgentResponse`
 - `build(): AgentBridge`
 
 Callback signatures:
@@ -61,6 +67,12 @@ Callback signatures:
 - `timeout`
 - `workingDirectory`
 - `sandboxDriver`
+
+`AgentConfig` additional methods:
+
+- `fromDsn(string $dsn): self`
+- `withOverrides(array $values): self`
+- `toArray(): array`
 
 `AgentConfig::fromArray()` also accepts:
 
@@ -78,8 +90,8 @@ $builder = AgentCtrl::codex()->withConfig(AgentConfig::fromArray([
 
 ## Claude Code
 
-- `withSystemPrompt(string $prompt): static`
-- `appendSystemPrompt(string $prompt): static`
+- `withSystemPrompt(string|\Stringable $prompt): static`
+- `appendSystemPrompt(string|\Stringable $prompt): static`
 - `withMaxTurns(int $turns): static`
 - `withPermissionMode(PermissionMode $mode): static`
 - `verbose(bool $enabled = true): static`
@@ -112,8 +124,8 @@ $builder = AgentCtrl::codex()->withConfig(AgentConfig::fromArray([
 
 - `withProvider(string $provider): static`
 - `withThinking(ThinkingLevel $level): static`
-- `withSystemPrompt(string $prompt): static`
-- `appendSystemPrompt(string $prompt): static`
+- `withSystemPrompt(string|\Stringable $prompt): static`
+- `appendSystemPrompt(string|\Stringable $prompt): static`
 - `withTools(array $tools): static`
 - `noTools(): static`
 - `withFiles(array $filePaths): static`
@@ -208,6 +220,29 @@ if ($sessionId !== null) {
 - `reasoning`
 - `total(): int`
 
+## StreamHandler
+
+`StreamHandler` interface (`Cognesy\AgentCtrl\Contract\StreamHandler`):
+
+- `onText(string $text): void`
+- `onToolUse(ToolCall $toolCall): void`
+- `onComplete(AgentResponse $response): void`
+- `onError(StreamError $error): void`
+
+`CallbackStreamHandler` implements `StreamHandler` with optional closures:
+
+- `hasTextHandler(): bool`
+- `hasToolUseHandler(): bool`
+- `hasCompleteHandler(): bool`
+- `hasErrorHandler(): bool`
+- `hasAnyHandler(): bool`
+
+`StreamError`:
+
+- `message` (string)
+- `code` (?string)
+- `details` (array<string,mixed>)
+
 ## Events
 
 Concrete builders also expose event wiring through `HandlesEvents`:
@@ -215,6 +250,41 @@ Concrete builders also expose event wiring through `HandlesEvents`:
 - `withEventHandler(CanHandleEvents $events): static`
 - `wiretap(?callable $listener): self`
 - `onEvent(string $class, ?callable $listener): self`
+
+Event classes (`Cognesy\AgentCtrl\Event\*`):
+
+Execution lifecycle:
+- `AgentExecutionStarted` -- execution begins
+- `AgentExecutionCompleted` -- execution finishes
+- `ExecutionAttempted` -- an execution attempt is made
+
+Request building:
+- `RequestBuilt` -- request object assembled
+- `CommandSpecCreated` -- CLI command spec created
+
+Process execution:
+- `ProcessExecutionStarted` -- sandbox process starts
+- `ProcessExecutionCompleted` -- sandbox process finishes
+
+Streaming:
+- `StreamProcessingStarted` -- stream parsing begins
+- `StreamChunkProcessed` -- a JSONL chunk is parsed
+- `StreamProcessingCompleted` -- stream parsing finishes
+
+Response parsing:
+- `ResponseParsingStarted` -- response parser begins
+- `ResponseDataExtracted` -- data extracted from raw response
+- `ResponseParsingCompleted` -- response parser finishes
+
+Agent content:
+- `AgentTextReceived` -- text content received
+- `AgentToolUsed` -- tool call detected
+- `AgentErrorOccurred` -- error event from agent
+
+Sandbox:
+- `SandboxInitialized` -- sandbox driver initialized
+- `SandboxPolicyConfigured` -- sandbox policy set
+- `SandboxReady` -- sandbox ready for execution
 
 ## Testing
 
