@@ -61,7 +61,7 @@ final class CodexBridge implements AgentBridge
     public function __construct(
         private ?string $model = null,
         private ?SandboxMode $sandboxMode = null,
-        private bool $fullAuto = true,
+        private bool $approveForMe = true,
         private bool $dangerouslyBypass = false,
         private bool $skipGitRepoCheck = false,
         private ?string $resumeSessionId = null,
@@ -128,7 +128,7 @@ final class CodexBridge implements AgentBridge
         $jsonLinesBuffer = $handler !== null ? new JsonLinesBuffer() : null;
 
         $streamStart = $handler !== null ? microtime(true) : null;
-        if ($handler !== null && $streamStart !== null) {
+        if ($handler !== null) {
             $this->dispatch(new StreamProcessingStarted(AgentType::Codex, $this->executionId));
         }
 
@@ -166,7 +166,7 @@ final class CodexBridge implements AgentBridge
         }
 
         // Emit stream processing completion if streaming was used
-        if ($handler !== null && $streamStart !== null) {
+        if ($handler !== null) {
             $streamDuration = (microtime(true) - $streamStart) * 1000;
             $this->dispatch(new StreamProcessingCompleted(
                 AgentType::Codex,
@@ -252,7 +252,7 @@ final class CodexBridge implements AgentBridge
             images: $this->images,
             workingDirectory: $this->workingDirectory,
             additionalDirs: $this->additionalDirs,
-            fullAuto: $this->fullAuto,
+            approveForMe: $this->approveForMe,
             dangerouslyBypass: $this->dangerouslyBypass,
             skipGitRepoCheck: $this->skipGitRepoCheck,
             resumeSessionId: $this->resumeSessionId,
@@ -374,6 +374,7 @@ final class CodexBridge implements AgentBridge
         return is_string($encoded) ? $encoded : null;
     }
 
+    /** @return array<string, mixed>|null */
     private function decodeStreamJsonLine(string $line, string $context): ?array
     {
         try {
